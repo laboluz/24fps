@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datos_ivam_2020>
+	<dato tipo ="ign">0.0</dato>
+	<dato tipo ="Despeses personal">3.827,70</dato>
+	<dato tipo ="Béns corrents">4.630,37</dato>
+	<dato tipo ="Transferències corrents">100,00</dato>
+	<dato tipo ="Inversions">1.999,00</dato>
+	<dato tipo ="Retribucions alts càrrecs">77,75</dato>
+	<dato tipo ="Retribucions	bàsiques">943,83</dato>
+	<dato tipo ="Laboral Eventual">1.900,27</dato>
+	<dato tipo ="Quotes socials">905,85</dato>
+	<dato tipo ="Arrendaments edificis">50,00</dato>
+	<dato tipo ="Edificis i altres construccions">270,00</dato>
+	<dato tipo ="Equips processos informació">100,00</dato>
+	<dato tipo ="Material oficina">10,00</dato>
+	<dato tipo ="Subministraments">320,00</dato>
+	<dato tipo ="Comunicacions">45,00</dato>
+	<dato tipo ="Transports">550,00</dato>
+	<dato tipo ="Primes d'assegurances">120,00</dato>
+	<dato tipo ="Despeses diverses">26,34</dato>
+	<dato tipo ="Publicacions">80,00</dato>
+	<dato tipo ="A famílies">20,00</dato>
+	<dato tipo ="Beques">80,00</dato>
+	<dato tipo ="Altre immobilitzat material">947,00</dato>
+</datos_ivam_2020>

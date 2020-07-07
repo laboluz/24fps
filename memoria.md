@@ -26,8 +26,9 @@ Se quiere diseñar una Aplicación Distribuida que gestione todas las partes que
 ## 2.- Estructura general de la Aplicación
 En la fig. 2 se puede observar la relación que existe entre las diferentes partes de la aplicación.
 
-![Figura 2. Relación entre las diferentes partes de la aplicación]()
+![Figura 2. Relación entre las diferentes partes de la aplicación](/media/cci_diagram.jpeg)
 
+![Figura 3. Asignación de IP para las distintas máquinas](/media/IP_asignacion.jpeg)
 
 ## 3.- Propuesta de especificación de la Aplicación Distribuida
 De forma simplificada el funcionamiento del sistema debe ser capaz de abordar las siguientes acciones para cada uno de los tipos de Nodos, salvo los requisitos de transferencia de datos que se aplican a todos:

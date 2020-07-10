@@ -4,61 +4,194 @@ import java.net.*;
 import java.io.*;
 
 
+int identificador=2;
 
 // puerto para recibir
-int port = 9000; 
-DatagramSocket ds; 
+int port1 = 9000; 
+int port2 = 9001; 
+int port3 = 9999; 
+String ipLocal="127.0.0.1";
+DatagramSocket ds1, ds2, dsRecepcion; 
+Nodo nodoPantalla1, nodoPantalla2, nodoRecepcion;
+
 // el byte para realizar la lectura
-byte[] buffer = new byte[65536]; 
+byte[] buffer1 = new byte[65536];
+byte[] buffer2 = new byte[65536]; 
 // la imagen a visualizar
-PImage video;
+PImage imagen1, imagen2;
+
+// estado de la aplicación
+int estado=1;
+Cronometro crono;
 
 void setup() {
-  size(1280,720);
+
+  size(2560, 720);
   //fullScreen();
-  try {
-    ds = new DatagramSocket(port);
-  } catch (SocketException e) {
+
+  // creamos el socket para recibir a la imagen 1 y a la 2
+  try { 
+    ds1 = new DatagramSocket(port1);
+    ds2 = new DatagramSocket(port2);
+    dsRecepcion = new DatagramSocket(port3);
+  } 
+  catch (SocketException e) {
     e.printStackTrace();
   } 
-  //video = createImage(1280,720,RGB);
-  video = createImage(1280,720,RGB);
+
+  // realmente nunca va a enviar nada es solo para recibir
+  nodoPantalla1=new Nodo(ipLocal, 9000, ds1);
+  nodoPantalla2=new Nodo(ipLocal, 9001, ds2);
+  // creamos el nodo de recepción
+  nodoRecepcion= new Nodo(dsRecepcion);
+
+  // creamos dos imagenes vacías
+  imagen1 = createImage(1280, 720, RGB);
+  imagen2 = createImage(1280, 720, RGB);
+  crono=new Cronometro();
+
+  // creamos dos hilos de ejecución independientes para 
+  // realizar la recepción de la imágenes
+
+  thread("recibirImagen1");
+  thread("recibirImagen2");
+  //lanzamos el hilo para recibir mensajes de control
+  thread("recibirControl");
 }
 
- void draw() {
-  // recibimos la imagen
-  recibir();
+void draw() {
 
-  // Dibujamos la imagen
   background(0);
-  imageMode(CENTER);
-  image(video,width/2,height/2);
+  if (estado==0) { 
+    text("INICIOOOOO", 640, 360);
+  }
+  else if (estado==1)
+  { // lo que hacemos es dibujar las dos imágenes
+    image(imagen1, 0, 0);
+    image(imagen2, 1280, 0);
+    
+   
+  } else if (estado==2) { 
+
+    text("RULETAAAAAA", 640, 360);
+    // comprobamos el cambio de estado
+    if (crono.end()) cambiarEstado(1);
+  }
 }
 
-void recibir() {
-  DatagramPacket p = new DatagramPacket(buffer, buffer.length); 
-  try {
-    ds.receive(p);
-  } catch (IOException e) {
-    e.printStackTrace();
-  } 
-  byte[] data = p.getData();
+void recibirControl() {
+  byte [] buffer2= new byte[10];
+  while (true)
+  {
+    // Esta recepción siempre esta activa
+    buffer2=nodoRecepcion.recibir();
+    if ((buffer2[1]== 1)||(buffer2[1]== 2)) cambiarEstado(2);
+  }
+}
 
-  println("recibimos el datagrama: " + data.length + " bytes." );
+void cambiarEstado(int nuevoEstado)
+{
+  //ESTADO==0
+  if (estado==0) 
+  { // si estamos el estado =0 y llega un 1 pasamos al estado=1
+    if (nuevoEstado==1) estado=1;
+    // si estamos en el estado =0 y llega un 1 pasamos al estado=2
+    else if (nuevoEstado==2) 
+    {     
+      estado=2;
+      // arrancamos el crono por 5 segundos de momento
+      crono.start(5000);
+    }
+  }//ESTADO==1
+  else if (estado==1) 
+  {
+    if (nuevoEstado==0) estado=0;
+    else if (nuevoEstado==2) 
+    { 
+      estado=2;
+      // arrancamos el crono por 5 segundos de momento
+      crono.start(5000);
+    }
+  }//ESTADO==2
+  else if (estado==2) 
+  {
+    if (nuevoEstado==0) estado=0;
+    else if (nuevoEstado==1) 
+    { 
+      crono.stop();
+      crono.start(50000);
+      estado=1;
+    }
+  }
+  println("estadoEstado="+estado);
+} // fin cambiar estado
 
+
+
+void recibirImagen1() {
+  while (true)
+  {
+    if (estado==1)
+    {
+      buffer1=nodoPantalla1.recibir();
+      // tendremos que descomprimir la imagen
+      imagen1=descomprimir(buffer1);
+      
+      
+    }
+    else delay(1000);
+  }
+}
+void recibirImagen2() {
+  while (true)
+  {
+    if (estado==1)
+
+    {
+      buffer2=nodoPantalla2.recibir();
+      // tendremos que descomprimir la imagen
+      imagen2=descomprimir(buffer2);
+      
+    }
+    else delay(1000);
+  }
+}
+
+PImage descomprimir(byte [] data)
+{ 
+  // creamos una imagen vacia
+  PImage imagen = createImage(1280, 720, RGB);
   // leemos los datos dentro de ByteArrayInputStream
-  ByteArrayInputStream bais = new ByteArrayInputStream(data);
-
+  ByteArrayInputStream bais = new ByteArrayInputStream(data); 
   // tendremos que desomprimir la imagen jpg y ponerla en unaPImage 
-  video.loadPixels();
+  imagen.loadPixels();
   try {
     // Hacemos un BufferedImage out para recibir los bytes
     BufferedImage img = ImageIO.read(bais);
     // ponemos los pixeles en  PImage
-    img.getRGB(0, 0, video.width, video.height, video.pixels, 0, video.width);
-  } catch (Exception e) {
+    img.getRGB(0, 0, imagen.width, imagen.height, imagen.pixels, 0, imagen.width);
+  } 
+  catch (Exception e) { 
     e.printStackTrace();
   }
   // actualizamos la PImage
-  video.updatePixels();
+  imagen.updatePixels();
+  return imagen;
+}
+
+// De momento cambiamos el estado de forma manual sobre todo para que de tiempo a 
+// que se realice la primera captura
+void keyPressed() {
+  if (key == '1') {
+    cambiarEstado(1);
+  }
+  if (key == '0') {
+    cambiarEstado(0);
+  } 
+  if (key == '2') {
+    cambiarEstado(2);
+  } 
+
+
+  //println("estado="+estado);
 }

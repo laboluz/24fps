@@ -30,7 +30,7 @@ class Nodo
   Nodo(DatagramSocket ds)
   { 
     // puerto de envío
-    puerto=8888;
+    puerto=8880;
     try { direccionIP=InetAddress.getLocalHost();} 
     catch (IOException e) { e.printStackTrace();}
     this.ds=ds;
@@ -42,7 +42,10 @@ class Nodo
   { 
    
     try { ds.send(new DatagramPacket(buffer, buffer.length,direccionIP,puerto)); 
-          //println(direccionIP.getHostAddress());
+          print(direccionIP.getHostAddress());
+          println(","+puerto);
+          println(buffer.length);
+          
         } 
     catch (Exception e) { e.printStackTrace();}
   }

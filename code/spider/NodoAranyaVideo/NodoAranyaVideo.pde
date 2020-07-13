@@ -1,6 +1,7 @@
 import processing.video.*;
 
 import javax.imageio.*;
+import javax.imageio.stream.*;
 import java.awt.image.*; 
 import java.net.*;
 import java.io.*;
@@ -10,10 +11,6 @@ import java.awt.color.ColorSpace;
 import java.awt.image.ColorConvertOp;
 
 
-
-/*PROBLEMA con el algoritmo de compresión JPEG*/
-/* Dependiendo de la maquina comprime mas o menos*/
-
 // DE momento esta aplicación tendrá los siguientes
 // ESTADOS:
 // ----ESTADO=0 reposo no hace nada
@@ -21,12 +18,18 @@ import java.awt.image.ColorConvertOp;
 // movimentos de cámara y control
 // ----ESTADO=2 envía fusion fake y recibe posibles movimientos de cámara y control
 
-// el movimiento de cámara lo veremos de momento solo esos estados
+// el movimiento de cámara lo veremos de momento solo esos estados, pero puede
+// ser independiente de la araña
+// los mensajes que recibe para los cambios de estados
+// son X0,X1,X2, donde X es el identificador de la camara
+// empiezan en el numero 2, 3,4,5, el identificador 1 son las pantallas
 
 // cada nodo aranya tendrá su identificador
-byte identificador=1;
+// la numeracion empieza en 2
+// DATOS PARA FICHERO DE CONFIGURACION
+byte identificador=2;
 // Puerto de recepción de datos de control
-int puertoRecepcion = 8888; 
+int puertoRecepcion = 8880; 
 
 // Puerto de envío de imágenes
 int puertoEnvio = 9999; 
@@ -35,7 +38,12 @@ int puertoEnvio = 9999;
 String direccionIP="....";
 
 // fichero donde estan los datos de los nodos
+// Aqui es donde envía realmente se ha dejado para los nodos
+// aranya igual que en el nodoCentral por comodidad, pero la lista 
+// esta formada por solo el nodo central, mas adelante se depurará
 String fichNodos="nodosPantalla.csv";
+
+// FIN DE DATOS FICHERO DE CONFIGURACION
 ListaNodosPantalla listaNodos;
 
 
@@ -95,7 +103,7 @@ void setup() {
     cam.start();
 
     //lanzamos el hilo para recibir mensajes de control
-    thread("recibirControl");
+    //thread("recibirControl");
   }
 
   // INICIALIZAMOS EL ESTADO 
@@ -129,7 +137,7 @@ void draw() {
     listaNodos.enviarImagen(imagenActual);
 
     // visualizamos la imagen
-    //image(imagenActual, 0, 0);
+    image(imagenActual, 0, 0);
   }
 }
 
@@ -146,25 +154,7 @@ void recibirControl() {
 
 void cambiarEstado(int nuevoEstado)
 {
-  //ESTADO==0
-  if (estado==0) 
-  { // si estamos el estado =0 y llega un 1 pasamos al estado=1
-    if (nuevoEstado==1) estado=1;
-    // si estamos en el estado =0 y llega un 1 pasamos al estado=2
-    else if (nuevoEstado==2) estado=2;
-  } 
-  //ESTADO==1
-  else if (estado==1) 
-  {
-    if (nuevoEstado==0) estado=0;
-    else if (nuevoEstado==2) estado=2;
-  } 
-  //ESTADO==2
-  else if (estado==2) 
-  {
-    if (nuevoEstado==0) estado=0;
-    else if (nuevoEstado==1) estado=1;
-  }
+  estado=nuevoEstado;
   println("estadoEstado="+estado);
 } // fin cambiar estado
 

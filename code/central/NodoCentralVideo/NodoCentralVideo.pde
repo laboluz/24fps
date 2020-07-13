@@ -1,115 +1,171 @@
 import processing.video.*;
 
 import javax.imageio.*;
+import javax.imageio.stream.*;
 import java.awt.image.*; 
 import java.net.*;
 import java.io.*;
 import java.util.*;
-
-// puerto de envio en las pruebas a un solo nodoPantalla
-int clientPort = 9000; 
-String ip="192.168.0.203";
+import controlP5.*;
 
 
-// Objeto para realizar el envio UDP
-DatagramSocket ds; 
-Nodo nodoCentral;
+
+// cada nodo aranya tendrá su identificador
+byte identificador=1;
+// Puerto de recepción de datos de control
+int puertoRecepcion = 8888; 
+
+// Puerto de envío de imágenes a los nodos pantalla
+int puertoEnvio = 9991; 
+
+// Puerto de envío de mensajes de control a todos los nodos
+int puertoEnvioTodos = 9992; 
+
+// direccion de esta máquina
+String direccionIP="....";
+
+// fichero donde estan los datos de los nodos
+String fichNodosPantalla="nodosPantalla.csv";
+String fichNodosTodos="nodosTodos.csv";
+ListaNodos listaNodosPantalla, listaNodosTodos;
 
 
-//La lista de las imagenes
+// el socket principal para enviar y recibir
+DatagramSocket dsEnvio, dsRecepcion,dsEnvioTodos; 
+Nodo nodoRecepcion;
 
-Lista24F listaImagen;
-// las imagenes actuales
-PImage imgActual,imgActualMin;
+PImage imagenActual;
+byte [] imagenByte,imagenByte1;
+
+// luego el fake será un video al final del todo
+
+
+// Variables de estado de la aplicación
+int estado;
+// interfaz grafica para simular estados
+ControlP5 cp5;
+
 
 
 void setup() {
-  
-  size(1280,200);
-  //size(320,240);
-  
-  // Inicializamos la lista de 24 fotogramas
-  listaImagen= new Lista24F(10);
-  imgActual=loadImage("error.jpeg");
-  
-  // creamos el nodo central para la recepcion
-  // y el DatagramSocket para realizar los envíos
-  try {
-    ds = new DatagramSocket(8888);
-    nodoCentral= new Nodo(InetAddress.getByName(ip),9000);
-    //nodoCentral= new Nodo(InetAddress.getLocalHost(),8888);
-  } catch (Exception e) {
+
+  size(1280, 720);
+  // inicializamos el DatagramSocket para envío y recepcion
+  try {  
+    dsRecepcion = new DatagramSocket(puertoRecepcion);
+    dsEnvio = new DatagramSocket(puertoEnvio);
+    dsEnvioTodos = new DatagramSocket(puertoEnvioTodos);
+    
+  } 
+  catch (SocketException e) { 
     e.printStackTrace();
   }
-}
+  // Inicializamos la lista para el envío alos nodos pantalla
+  listaNodosPantalla= new ListaNodos(fichNodosPantalla, dsEnvio);
+  // Inicializamos la lista para el envío a todos los nodos para control
+  listaNodosTodos= new ListaNodos(fichNodosTodos, dsEnvioTodos);
+  // creamos el nodo de recepción
+  nodoRecepcion= new Nodo(dsRecepcion);
+  // luego activar la visualizacion
+  imagenActual=loadImage("error.jpeg");
+  estado=1;
+  imagenByte=new byte[65000]; 
+  imagenByte1=new byte[65000]; 
+  thread("recibirImagen");
   
- 
+  // definimos el elemento de la interfaz gráfica
+  cp5 = new ControlP5(this);
+  
+  cp5.addTextfield("mensaje")
+     .setPosition(20,170)
+     .setSize(200,40)
+     .setFont(createFont("arial",20))
+     .setAutoClear(false)
+     ;
+       
+  
+  
+}
+
+
 void draw() {
-      
-      // dibujamos la lista de las imágenes
-      background(0);
-      
-      // recibimos una imagen mas adelante deberemos determinar de donde viene esa imagen
-      imgActual=nodoCentral.recibir();
-      
-      // ejemplo de introduccion de una imagen fake
-      if (mousePressed) 
-      {  PImage fake=loadImage("error.jpeg");
-         imgActual.blend(fake, 0,0,fake.width,fake.height,0,0,imgActual.width,imgActual.height,MULTIPLY) ;
-      }
-      nodoCentral.enviar(ds,imgActual);
-      listaImagen.borrar();
-      listaImagen.insertar(imgActual);
-      // es solo para control
-      listaImagen.dibujar();
-      // tendriamos que enviar de nuevo la imagen al NodoPantalla
-      
-      
-     
+
+  // realizamos el envío a todos los nodos Pantalla
+  background(0);
+  if (estado==1)
+  { 
+    //Primero recuperamos la imagen y luego la mandamos
+    
+    //imagenByte=nodoRecepcion.recibir();
+    // mandamos la nueva imagen a todos los nodosPantalla
+    //imagenActual=descomprimir(imagenByte);
+  
+    //listaNodos.enviarImagenByte(imagenByte);
+    //listaNodos.enviarImagen(imagenActual);
+    //image(imagenActual,0,0);
+    text(" enviando datos ....", 640, 100);
+    //println("tamanyo de la imagen en Central: "+imagenByte.length);
+    
+  }
+   cp5.get(Textfield.class,"mensaje").setVisible(true);
+   
 }
 
+void recibirImagen() {
+  while (true)
+  {
+    if (estado==1)
 
-
-
-/*
-// Function to broadcast a PImage over UDP
-// Special thanks to: http://ubaa.net/shared/processing/udp/
-// (This example doesn't use the library, but you can!)
-
-
-void broadcast(PImage img) {
-
-  // We need a buffered image to do the JPG encoding
-  //BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_INT_RGB );
-  BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_BYTE_GRAY);
-
-  // Transfer pixels from localFrame to the BufferedImage
-  img.loadPixels();
-  bimg.setRGB( 0, 0, img.width, img.height, img.pixels, 0, img.width);
-
-  // Need these output streams to get image as bytes for UDP communication
-  ByteArrayOutputStream baStream  = new ByteArrayOutputStream();
-  BufferedOutputStream bos    = new BufferedOutputStream(baStream);
-
-  // Turn the BufferedImage into a JPG and put it in the BufferedOutputStream
-  // Requires try/catch
-  try {
-    ImageIO.write(bimg, "jpg", bos);
-  } 
-  catch (IOException e) {
-    e.printStackTrace();
-  }
-
-  // Get the byte array, which we will send out via UDP!
-  byte[] packet = baStream.toByteArray();
-
-  // Send JPEG data as a datagram
-  println("Sending datagram with " + packet.length + " bytes");
-  try {
-    ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName(ip),clientPort));
-  } 
-  catch (Exception e) {
-    e.printStackTrace();
+    {
+      imagenByte=nodoRecepcion.recibir();
+      //imagenByte=imagenByte1;
+      
+    }
+    else delay(1000);
   }
 }
-*/
+PImage descomprimir(byte [] data)
+{ 
+  // creamos una imagen vacia
+  PImage imagen = createImage(1280, 720, RGB);
+  // leemos los datos dentro de ByteArrayInputStream
+  ByteArrayInputStream bais = new ByteArrayInputStream(data); 
+  // tendremos que desomprimir la imagen jpg y ponerla en unaPImage 
+  imagen.loadPixels();
+  try {
+    // Hacemos un BufferedImage out para recibir los bytes
+    BufferedImage img = ImageIO.read(bais);
+    // ponemos los pixeles en  PImage
+    img.getRGB(0, 0, imagen.width, imagen.height, imagen.pixels, 0, imagen.width);
+  } 
+  catch (Exception e) { 
+    e.printStackTrace();
+  }
+  // actualizamos la PImage
+  imagen.updatePixels();
+  return imagen;
+}
+public void mensaje(String msj) {
+  // envio mensaje de control
+  // lo que tendremos que hacer es obtener los dos datos
+  // y realizar el envío correspondiente
+  // enviamos a la lista
+  println(msj);
+  byte[] mensaje=analizar(msj);
+  listaNodosTodos.enviarByte(mensaje);
+}
+byte [] analizar(String msj)
+{   
+    byte[] m=new byte[3];
+    // en realidad la idea es sencilla pero por conversiones
+    // de tipo hay que montar todo este lio
+    int x1=msj.charAt(0)-48;
+    int x2=msj.charAt(1)-48;
+    m[0]=(byte)x1;
+    m[1]=(byte)x2;
+    //m[1]=(byte)msj.charAt(1);
+    //m[0]=(byte)msj.charAt(0);
+    //m[1]=(byte)msj.charAt(1);
+    println(m[0]+","+m[1]);
+    return m;
+}

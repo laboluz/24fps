@@ -3,26 +3,38 @@ import javax.imageio.*;
 import java.net.*;
 import java.io.*;
 
-
-int identificador=2;
+// posibles datos para fichero de configuracion
+// todos los nodos pantalla tienen el identicador 1
+int identificador=1;
 
 // puerto para recibir
 int port1 = 9000; 
 int port2 = 9001; 
-int port3 = 9999; 
+int port3 = 9990; 
+
 String ipLocal="127.0.0.1";
+// fin posibles datos
+
 DatagramSocket ds1, ds2, dsRecepcion; 
 Nodo nodoPantalla1, nodoPantalla2, nodoRecepcion;
 
 // el byte para realizar la lectura
-byte[] buffer1 = new byte[65536];
-byte[] buffer2 = new byte[65536]; 
+byte[] buffer1 = new byte[65000];
+byte[] buffer2 = new byte[65000]; 
 // la imagen a visualizar
 PImage imagen1, imagen2;
 
 // estado de la aplicación
 int estado=1;
 Cronometro crono;
+//MENSAJES QUE LE LLEGAN QUE TIENE QUE GESTIONAR
+// 10,11,12,13,14,15,16, donde:
+// 10-dejar de visualizar
+// 11-visualizar imagenes
+// 12-ruleta a camara_1
+// 13- ruleta a camara_2
+// 14- ruleta a camara_3
+// y asi sucesivamente
 
 void setup() {
 
@@ -72,8 +84,18 @@ void draw() {
     
    
   } else if (estado==2) { 
+    // en vez de este texto debera salir
+    text("RULETAAAAAA_CAMARA_1", 640, 360);
+    // comprobamos el cambio de estado
+    if (crono.end()) cambiarEstado(1);
+  } else if (estado==3) { 
 
-    text("RULETAAAAAA", 640, 360);
+    text("RULETAAAAAA_CAMARA_2", 640, 360);
+    // comprobamos el cambio de estado
+    if (crono.end()) cambiarEstado(1);
+  } else if (estado==4) { 
+
+    text("RULETAAAAAA_CAMARA_3", 640, 360);
     // comprobamos el cambio de estado
     if (crono.end()) cambiarEstado(1);
   }
@@ -85,7 +107,8 @@ void recibirControl() {
   {
     // Esta recepción siempre esta activa
     buffer2=nodoRecepcion.recibir();
-    if ((buffer2[1]== 1)||(buffer2[1]== 2)) cambiarEstado(2);
+    // si el mensaje es para los nodos pantalla proponemos el cambio de estado
+    if (buffer2[0]== 1) cambiarEstado(buffer2[1]);
   }
 }
 
@@ -96,9 +119,9 @@ void cambiarEstado(int nuevoEstado)
   { // si estamos el estado =0 y llega un 1 pasamos al estado=1
     if (nuevoEstado==1) estado=1;
     // si estamos en el estado =0 y llega un 1 pasamos al estado=2
-    else if (nuevoEstado==2) 
+    else if (nuevoEstado>=2) 
     {     
-      estado=2;
+      estado=nuevoEstado;
       // arrancamos el crono por 5 segundos de momento
       crono.start(5000);
     }
@@ -106,14 +129,14 @@ void cambiarEstado(int nuevoEstado)
   else if (estado==1) 
   {
     if (nuevoEstado==0) estado=0;
-    else if (nuevoEstado==2) 
+    else if (nuevoEstado>=2) 
     { 
-      estado=2;
+      estado=nuevoEstado;
       // arrancamos el crono por 5 segundos de momento
       crono.start(5000);
     }
   }//ESTADO==2
-  else if (estado==2) 
+  else if (estado>=2) 
   {
     if (nuevoEstado==0) estado=0;
     else if (nuevoEstado==1) 
@@ -121,6 +144,11 @@ void cambiarEstado(int nuevoEstado)
       crono.stop();
       crono.start(50000);
       estado=1;
+    } else if (nuevoEstado>=2) 
+    { 
+      estado=nuevoEstado;
+      // arrancamos el crono por 5 segundos de momento
+      crono.start(5000);
     }
   }
   println("estadoEstado="+estado);
@@ -179,6 +207,8 @@ PImage descomprimir(byte [] data)
   return imagen;
 }
 
+
+
 // De momento cambiamos el estado de forma manual sobre todo para que de tiempo a 
 // que se realice la primera captura
 void keyPressed() {
@@ -190,6 +220,12 @@ void keyPressed() {
   } 
   if (key == '2') {
     cambiarEstado(2);
+  }
+  if (key == '3') {
+    cambiarEstado(3);
+  } 
+  if (key == '4') {
+    cambiarEstado(4);
   } 
 
 

@@ -2,21 +2,21 @@
  * que realizar los envíos de las fotos ya convertidos en array de byte
  */
 
-class ListaNodosPantalla
+class ListaNodos
 { 
   // tenemos la lista de nodos Pantalla y el nodo Central
-  LinkedList<Nodo> listaNodosPantalla;
+  LinkedList<Nodo> listaNodos;
   // numero de elementos de la lista
   int num;
   //elementos auxiliares para el envío de los datos a todas las pantallas
   //cuidado REVISAR
   private byte [] buffer=new byte[65536]; 
 
-  ListaNodosPantalla(String fichNodos, DatagramSocket ds)
+  ListaNodos(String fichNodos, DatagramSocket ds)
   { // Recuperamos del fichero fichNodos se trata de un formato .csv
     Table datosNodos=loadTable(fichNodos, "header");
     // creamos la lista
-    listaNodosPantalla= new LinkedList();
+    listaNodos= new LinkedList();
     // recorremos el fichero donde estan los nodosPantalla y vamos creando 
     // los elementos de la lista
     // recorremos las filas de la tabla
@@ -26,7 +26,7 @@ class ListaNodosPantalla
       String ip = row.getString("direccionIP"); 
       int puerto = row.getInt ( "puerto"); 
       Nodo elemento= new Nodo(ip, puerto, ds);
-      listaNodosPantalla.add(elemento);
+      listaNodos.add(elemento);
     }
   }
 
@@ -36,18 +36,37 @@ class ListaNodosPantalla
     // y comprimida a jpg
 
     //buffer=comprimir(img);
-    try{buffer=comprimir2(img,0.5f);}
+    try{buffer=comprimir2(img,0.7f);}
     catch(Exception e){;}
     // Una vez tenemos el vector de byte recorremos la lista de nodosPantalla
     // y enviamos
 
-    Iterator<Nodo> it = listaNodosPantalla.iterator();
+    Iterator<Nodo> it = listaNodos.iterator();
     while (it.hasNext()) {
       Nodo nodoPantalla=it.next();
       nodoPantalla.enviar(buffer);
       //delay(120);
     }
   }
+  
+  void enviarImagenByte(byte [] img)
+  { // tendremos que obtener el array de bytes de la imagen en Blanco y Negro
+    // y comprimida a jpg
+
+    
+
+    Iterator<Nodo> it = listaNodos.iterator();
+    while (it.hasNext()) {
+      Nodo nodoPantalla=it.next();
+      nodoPantalla.enviar(img);
+      //delay(120);
+    }
+  }
+  void enviarByte(byte [] msj)
+  { enviarImagenByte(msj);}
+  
+
+  
 
   private byte [] comprimir(PImage imagen)
   { 

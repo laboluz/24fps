@@ -42,9 +42,9 @@ class Nodo
   { 
    
     try { ds.send(new DatagramPacket(buffer, buffer.length,direccionIP,puerto)); 
-          print(direccionIP.getHostAddress());
-          println(","+puerto);
-          println(buffer.length);
+          //print(direccionIP.getHostAddress());
+          //print(","+puerto+", tamanyo:  ");
+          //println(buffer.length);
           
         } 
     catch (Exception e) { e.printStackTrace();}

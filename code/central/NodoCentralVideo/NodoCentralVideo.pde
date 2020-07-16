@@ -12,8 +12,10 @@ import controlP5.*;
 
 // cada nodo aranya tendrá su identificador
 byte identificador=1;
-// Puerto de recepción de datos de control
-int puertoRecepcion = 8888; 
+// Puerto de recepción de datos de control, en este caso las imagenes
+// que vienen de los nodos araña
+
+int puertoRecepcion = 9050; 
 
 // Puerto de envío de imágenes a los nodos pantalla
 int puertoEnvio = 9991; 
@@ -60,17 +62,25 @@ void setup() {
   catch (SocketException e) { 
     e.printStackTrace();
   }
+  
+  //imagenByte=new byte[65000]; 
+  imagenActual=loadImage("error_1.jpg");
+  imagenByte=comprimir(imagenActual);
   // Inicializamos la lista para el envío alos nodos pantalla
-  listaNodosPantalla= new ListaNodos(fichNodosPantalla, dsEnvio);
+  // vamos a añadirle 
+  listaNodosPantalla= new ListaNodos(fichNodosPantalla, imagenByte, dsEnvio,12,5);
   // Inicializamos la lista para el envío a todos los nodos para control
   listaNodosTodos= new ListaNodos(fichNodosTodos, dsEnvioTodos);
   // creamos el nodo de recepción
   nodoRecepcion= new Nodo(dsRecepcion);
   // luego activar la visualizacion
-  imagenActual=loadImage("error.jpeg");
-  estado=1;
-  imagenByte=new byte[65000]; 
-  imagenByte1=new byte[65000]; 
+  
+  
+  estado=0;
+  //imagenByte=new byte[65000]; 
+  //// inicilizamos la imagen inicial
+  //for(int i=0; i<imagenByte.length;i++) { imagenByte[i]=0; }
+  
   thread("recibirImagen");
   
   // definimos el elemento de la interfaz gráfica
@@ -80,7 +90,7 @@ void setup() {
      .setPosition(20,170)
      .setSize(200,40)
      .setFont(createFont("arial",20))
-     .setAutoClear(false)
+     .setAutoClear(true)
      ;
        
   
@@ -98,15 +108,16 @@ void draw() {
     
     //imagenByte=nodoRecepcion.recibir();
     // mandamos la nueva imagen a todos los nodosPantalla
-    //imagenActual=descomprimir(imagenByte);
+    imagenActual=descomprimir(imagenByte);
   
-    //listaNodos.enviarImagenByte(imagenByte);
+    listaNodosPantalla.enviarImagenByte();
     //listaNodos.enviarImagen(imagenActual);
-    //image(imagenActual,0,0);
+    
     text(" enviando datos ....", 640, 100);
     //println("tamanyo de la imagen en Central: "+imagenByte.length);
     
   }
+   image(imagenActual,0,0);
    cp5.get(Textfield.class,"mensaje").setVisible(true);
    
 }
@@ -118,7 +129,9 @@ void recibirImagen() {
 
     {
       imagenByte=nodoRecepcion.recibir();
-      //imagenByte=imagenByte1;
+      // guardarlo en la lista y borrar el último
+      listaNodosPantalla.borrarImagenByte();
+      listaNodosPantalla.insertarImagenByte(imagenByte);
       
     }
     else delay(1000);
@@ -169,3 +182,59 @@ byte [] analizar(String msj)
     println(m[0]+","+m[1]);
     return m;
 }
+
+ //De momento cambiamos el estado de forma manual sobre todo para que de tiempo a 
+ //que se realice la primera captura
+void keyPressed() {
+  if (key == 'a') {
+    cambiarEstado(0);
+  }
+  if (key == 'b') {
+    cambiarEstado(1);
+  } 
+  if (key == 'c') {
+    cambiarEstado(2);
+  } 
+
+
+  //println("estado="+estado);
+}
+
+void cambiarEstado(int nuevoEstado)
+{
+  estado=nuevoEstado;
+  println("estadoEstado="+estado);
+} // fin cambiar estado
+
+private byte [] comprimir(PImage imagen)
+  { 
+    byte[] packet=null;
+
+
+    BufferedImage bimg = new BufferedImage(imagen.width, imagen.height, BufferedImage.TYPE_BYTE_GRAY);
+    //BufferedImage bimg = new BufferedImage(imagen.width, imagen.height, BufferedImage.TYPE_INT_RGB);
+
+    // transferimos los pixeles al bufferImagen
+    imagen.loadPixels();
+    bimg.setRGB( 0, 0, imagen.width, imagen.height, imagen.pixels, 0, imagen.width);
+    //ColorConvertOp ccop = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
+    //BufferedImage bimg = ccop.filter(bimg1, null);
+    // Para la comunicacion UDP tenemos que mandar bytes
+
+    ByteArrayOutputStream baStream  = new ByteArrayOutputStream();
+    BufferedOutputStream bos    = new BufferedOutputStream(baStream);
+
+    // Ponemos el BufferedImage dentro de un JPG y lo ponemos en el BufferedOutputStream
+
+    try {
+      ImageIO.write(bimg, "jpg", bos);
+    } 
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // recuperamos byte array, que enviaremos via UDP!
+    packet = baStream.toByteArray();
+    //println("el numero de elementos es: "+packet.length);
+    return packet;
+  }

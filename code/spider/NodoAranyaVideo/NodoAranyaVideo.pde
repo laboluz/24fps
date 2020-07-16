@@ -29,7 +29,7 @@ import java.awt.image.ColorConvertOp;
 // DATOS PARA FICHERO DE CONFIGURACION
 byte identificador=2;
 // Puerto de recepción de datos de control
-int puertoRecepcion = 8880; 
+int puertoRecepcion = 9990; 
 
 // Puerto de envío de imágenes
 int puertoEnvio = 9999; 
@@ -41,7 +41,7 @@ String direccionIP="....";
 // Aqui es donde envía realmente se ha dejado para los nodos
 // aranya igual que en el nodoCentral por comodidad, pero la lista 
 // esta formada por solo el nodo central, mas adelante se depurará
-String fichNodos="nodosPantalla.csv";
+String fichNodos="nodoCentral.csv";
 
 // FIN DE DATOS FICHERO DE CONFIGURACION
 ListaNodosPantalla listaNodos;
@@ -103,7 +103,7 @@ void setup() {
     cam.start();
 
     //lanzamos el hilo para recibir mensajes de control
-    //thread("recibirControl");
+    thread("recibirControl");
   }
 
   // INICIALIZAMOS EL ESTADO 
@@ -137,7 +137,7 @@ void draw() {
     listaNodos.enviarImagen(imagenActual);
 
     // visualizamos la imagen
-    image(imagenActual, 0, 0);
+    //image(imagenActual, 0, 0);
   }
 }
 

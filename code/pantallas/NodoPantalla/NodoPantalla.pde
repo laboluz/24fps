@@ -3,6 +3,11 @@ import javax.imageio.*;
 import java.net.*;
 import java.io.*;
 
+
+import processing.video.*;
+
+
+
 // posibles datos para fichero de configuracion
 // todos los nodos pantalla tienen el identicador 1
 int identificador=1;
@@ -23,6 +28,7 @@ byte[] buffer1 = new byte[65000];
 byte[] buffer2 = new byte[65000]; 
 // la imagen a visualizar
 PImage imagen1, imagen2;
+Movie ruletaCam1, ruletaCam2, ruletaCam3;
 
 // estado de la aplicación
 int estado=1;
@@ -54,13 +60,19 @@ void setup() {
   // realmente nunca va a enviar nada es solo para recibir
   nodoPantalla1=new Nodo(ipLocal, 9000, ds1);
   nodoPantalla2=new Nodo(ipLocal, 9001, ds2);
-  // creamos el nodo de recepción
+  // creamos el nodo de recepción de mensajes de control
   nodoRecepcion= new Nodo(dsRecepcion);
 
   // creamos dos imagenes vacías
   imagen1 = createImage(1280, 720, RGB);
   imagen2 = createImage(1280, 720, RGB);
   crono=new Cronometro();
+
+  // Inicializamos los videos de las ruletas
+  ruletaCam1 = new Movie(this, "ruletaCam1.mp4");
+  ruletaCam2 = new Movie(this, "ruletaCam2.mp4");
+  ruletaCam3 = new Movie(this, "ruletaCam3.mp4");
+
 
   // creamos dos hilos de ejecución independientes para 
   // realizar la recepción de la imágenes
@@ -76,28 +88,53 @@ void draw() {
   background(0);
   if (estado==0) { 
     text("INICIOOOOO", 640, 360);
-  }
-  else if (estado==1)
+  } else if (estado==1)
   { // lo que hacemos es dibujar las dos imágenes
     image(imagen1, 0, 0);
     image(imagen2, 1280, 0);
-    
-   
+    text("ACCIONNNNNNNNN", 640, 360);
   } else if (estado==2) { 
-    // en vez de este texto debera salir
+    // obtenemos un fotograma de la ruleta y lo mostramos
+    if (ruletaCam1.available()) {
+      ruletaCam1.read();
+    }
+    image(ruletaCam1, 0, 0);
+    image(ruletaCam1, 1280, 0);
     text("RULETAAAAAA_CAMARA_1", 640, 360);
     // comprobamos el cambio de estado
-    if (crono.end()) cambiarEstado(1);
+    if (ruletaCam1.time()>=(ruletaCam1.duration()-1)) 
+    { 
+      ruletaCam1.stop();
+      cambiarEstado(1);
+    }
   } else if (estado==3) { 
-
+    // obtenemos un fotograma de la ruleta y lo mostramos
+    if (ruletaCam2.available()) {
+      ruletaCam2.read();
+    }
+    image(ruletaCam2, 0, 0);
+    image(ruletaCam2, 1280, 0);
     text("RULETAAAAAA_CAMARA_2", 640, 360);
     // comprobamos el cambio de estado
-    if (crono.end()) cambiarEstado(1);
+   if (ruletaCam2.time()>=(ruletaCam2.duration()-1)) 
+    { 
+      ruletaCam2.stop();
+      cambiarEstado(1);
+    }
   } else if (estado==4) { 
-
+    // obtenemos un fotograma de la ruleta y lo mostramos
+    if (ruletaCam3.available()) {
+      ruletaCam3.read();
+    }
+    image(ruletaCam3, 0, 0);
+    image(ruletaCam3, 1280, 0);
     text("RULETAAAAAA_CAMARA_3", 640, 360);
     // comprobamos el cambio de estado
-    if (crono.end()) cambiarEstado(1);
+    if (ruletaCam3.time()>=(ruletaCam3.duration()-1)) 
+    { 
+      ruletaCam3.stop();
+      cambiarEstado(1);
+    }
   }
 }
 
@@ -115,42 +152,41 @@ void recibirControl() {
 void cambiarEstado(int nuevoEstado)
 {
   //ESTADO==0
-  if (estado==0) 
-  { // si estamos el estado =0 y llega un 1 pasamos al estado=1
-    if (nuevoEstado==1) estado=1;
-    // si estamos en el estado =0 y llega un 1 pasamos al estado=2
-    else if (nuevoEstado>=2) 
-    {     
-      estado=nuevoEstado;
-      // arrancamos el crono por 5 segundos de momento
-      crono.start(5000);
-    }
-  }//ESTADO==1
-  else if (estado==1) 
-  {
-    if (nuevoEstado==0) estado=0;
-    else if (nuevoEstado>=2) 
-    { 
-      estado=nuevoEstado;
-      // arrancamos el crono por 5 segundos de momento
-      crono.start(5000);
-    }
-  }//ESTADO==2
-  else if (estado>=2) 
-  {
-    if (nuevoEstado==0) estado=0;
-    else if (nuevoEstado==1) 
-    { 
-      crono.stop();
-      crono.start(50000);
-      estado=1;
-    } else if (nuevoEstado>=2) 
-    { 
-      estado=nuevoEstado;
-      // arrancamos el crono por 5 segundos de momento
-      crono.start(5000);
-    }
+  if (nuevoEstado==0) { 
+    estado=0;
   }
+  if (nuevoEstado==1) { 
+    estado=1;
+  }
+  if (nuevoEstado==2) 
+  { 
+    // la aplicacion pasa a la camara_1 y antes debemos sacar el video de la ruleta_1
+    ruletaCam1.play();
+    // arrancamos el crono por un tiempo aproximado al fin de la peli
+    long tiempo=(long)ruletaCam1.duration();
+   
+    crono.start(tiempo*1000);
+    estado=2;
+  }
+  if (nuevoEstado==3) 
+  { 
+    // la aplicacion pasa a la camara_1 y antes debemos sacar el video de la ruleta_1
+    ruletaCam2.play();
+    // arrancamos el crono por un tiempo aproximado al fin de la peli
+    long tiempo=(long)ruletaCam2.duration()+10;
+    crono.start(tiempo*1000);
+    estado=3;
+  }
+  if (nuevoEstado==4) 
+  { 
+    // la aplicacion pasa a la camara_1 y antes debemos sacar el video de la ruleta_1
+    ruletaCam3.play();
+    // arrancamos el crono por un tiempo aproximado al fin de la peli
+    long tiempo=(long)ruletaCam3.duration()+10;
+    crono.start(tiempo*1000);
+    estado=4;
+  }
+
   println("estadoEstado="+estado);
 } // fin cambiar estado
 
@@ -164,10 +200,7 @@ void recibirImagen1() {
       buffer1=nodoPantalla1.recibir();
       // tendremos que descomprimir la imagen
       imagen1=descomprimir(buffer1);
-      
-      
-    }
-    else delay(1000);
+    } else delay(1000);
   }
 }
 void recibirImagen2() {
@@ -179,9 +212,7 @@ void recibirImagen2() {
       buffer2=nodoPantalla2.recibir();
       // tendremos que descomprimir la imagen
       imagen2=descomprimir(buffer2);
-      
-    }
-    else delay(1000);
+    } else delay(1000);
   }
 }
 

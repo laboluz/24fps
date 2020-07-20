@@ -11,11 +11,11 @@ class Nodo
   
   // Socket para realizar envío y recepción 
   DatagramSocket ds; 
+  byte [] buffer=new byte[65000]; 
+  
   
 
-  // De forma temporal almacen de la
-  // imagen
-  byte [] buffer=new byte[65000]; 
+  
   
 
   Nodo(String ip,int p,DatagramSocket ds)
@@ -51,6 +51,8 @@ class Nodo
   }
   
   byte [] recibir() {
+    // creas un contenedor nuevo
+    byte [] buffer=new byte[65000]; 
     DatagramPacket p = new DatagramPacket(buffer, buffer.length); 
     try { ds.receive(p);} 
     catch (IOException e) { e.printStackTrace();} 

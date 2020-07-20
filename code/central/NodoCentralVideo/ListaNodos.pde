@@ -127,8 +127,20 @@ class ListaNodos
   {   // borramos la última imagen que insertamos
       listaImagenByte.removeLast();
   }
-  
-
+  void dibujarListaImagenByte()
+  { 
+     
+    for( int j=0; j<4; j++)
+    for (int i=0; i<10;i++)
+    {   byte [] imagenByteActual=listaImagenByte.get((j+i)+4);
+        PImage imagenActual=descomprimir(imagenByteActual);
+        int x=(80*i)+240;
+        int y=(45*j)+240;
+        imagenActual.resize(80, 45);
+        image(imagenActual,x,y);
+    }
+    
+  }
   
 
   
@@ -167,6 +179,28 @@ class ListaNodos
     //jpgWriter.write(null, outputImage, jpgWriteParam);
     //jpgWriter.dispose();
   }
+  
+  PImage descomprimir(byte [] data)
+{ 
+  // creamos una imagen vacia
+  PImage imagen = createImage(1280, 720, RGB);
+  // leemos los datos dentro de ByteArrayInputStream
+  ByteArrayInputStream bais = new ByteArrayInputStream(data); 
+  // tendremos que desomprimir la imagen jpg y ponerla en unaPImage 
+  imagen.loadPixels();
+  try {
+    // Hacemos un BufferedImage out para recibir los bytes
+    BufferedImage img = ImageIO.read(bais);
+    // ponemos los pixeles en  PImage
+    img.getRGB(0, 0, imagen.width, imagen.height, imagen.pixels, 0, imagen.width);
+  } 
+  catch (Exception e) { 
+    e.printStackTrace();
+  }
+  // actualizamos la PImage
+  imagen.updatePixels();
+  return imagen;
+}
   
   //private byte [] comprimir(PImage imagen)
   //{ 

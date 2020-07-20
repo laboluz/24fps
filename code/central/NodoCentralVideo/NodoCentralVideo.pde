@@ -68,7 +68,7 @@ void setup() {
   imagenByte=comprimir(imagenActual);
   // Inicializamos la lista para el envío alos nodos pantalla
   // vamos a añadirle 
-  listaNodosPantalla= new ListaNodos(fichNodosPantalla, imagenByte, dsEnvio,12,5);
+  listaNodosPantalla= new ListaNodos(fichNodosPantalla, imagenByte, dsEnvio,12,2);
   // Inicializamos la lista para el envío a todos los nodos para control
   listaNodosTodos= new ListaNodos(fichNodosTodos, dsEnvioTodos);
   // creamos el nodo de recepción
@@ -87,7 +87,7 @@ void setup() {
   cp5 = new ControlP5(this);
   
   cp5.addTextfield("mensaje")
-     .setPosition(20,170)
+     .setPosition(250,500)
      .setSize(200,40)
      .setFont(createFont("arial",20))
      .setAutoClear(true)
@@ -106,18 +106,19 @@ void draw() {
   { 
     //Primero recuperamos la imagen y luego la mandamos
     
-    //imagenByte=nodoRecepcion.recibir();
-    // mandamos la nueva imagen a todos los nodosPantalla
-    imagenActual=descomprimir(imagenByte);
-  
+   
+    //byte [] imagenByte=nodoRecepcion.recibir();
+    //// guardarlo en la lista y borrar el último
+    //listaNodosPantalla.borrarImagenByte();
+    //listaNodosPantalla.insertarImagenByte(imagenByte);
     listaNodosPantalla.enviarImagenByte();
-    //listaNodos.enviarImagen(imagenActual);
+    //listaNodosPantalla.dibujarListaImagenByte();
     
     text(" enviando datos ....", 640, 100);
     //println("tamanyo de la imagen en Central: "+imagenByte.length);
     
   }
-   image(imagenActual,0,0);
+   //image(imagenActual,0,0);
    cp5.get(Textfield.class,"mensaje").setVisible(true);
    
 }
@@ -128,7 +129,7 @@ void recibirImagen() {
     if (estado==1)
 
     {
-      imagenByte=nodoRecepcion.recibir();
+      byte [] imagenByte=nodoRecepcion.recibir();
       // guardarlo en la lista y borrar el último
       listaNodosPantalla.borrarImagenByte();
       listaNodosPantalla.insertarImagenByte(imagenByte);

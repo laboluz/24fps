@@ -108,6 +108,7 @@ void setup() {
 
   // INICIALIZAMOS EL ESTADO 
   estado=0;
+  frameRate(1);
 
   // tendremos un hilo solo para recibir las órdenes del nodoCentral
 }
@@ -137,7 +138,7 @@ void draw() {
     listaNodos.enviarImagen(imagenActual);
 
     // visualizamos la imagen
-    //image(imagenActual, 0, 0);
+    image(imagenActual, 0, 0);
   }
 }
 

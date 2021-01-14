@@ -24,7 +24,7 @@ void setup() {
 
 void loop() {
   
-  //tiltServo.write(60);
+  tiltServo.write(60);
 
   // Sweep from 0 to 180 degrees:
   for (pan = 0; pan <= 180; pan += 1) {

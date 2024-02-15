@@ -30,3 +30,42 @@ c2 -->|B| fake2 --> init3
 init3 -.->|bucle| init1
 ```
 
+Manejo de recepción OSC 
+---
+```mermaid
+flowchart LR
+
+init(["Recibido OSC"])
+init ==> ruleta["Activar Ruleta"] 
+init ==> vid1["Activar Grabación A"]
+init ==> vid2["Activar Grabación B"]
+init ==> cam1["Activar Micros B"]
+init ==> cam2["Activar Micros A"]
+
+ruleta
+-.- r1["audio: \n 10-19-0"]
+-.- r2["anim.: portalgu"]
+-.- r3["canales: \n 10-19-0"]
+
+vid1
+-.- v11["audio: \n 10-19-0"]
+-.- v12["anim.: portalgu"]
+-.- v13["canales: \n 10-19-0"]
+
+vid2
+-.- v21["audio: \n 10-19-0"]
+-.- v22["anim.: portalgu"]
+-.- v23["canales: \n 10-19-0"]
+
+cam1
+-.- c11["audio: \n 10-19-0"]
+-.- c12["anim.: portalgu"]
+-.- c13["canales: \n 10-19-0"]
+
+cam2
+-.- c21["audio: \n 10-19-0"]
+-.- c22["anim.: portalgu"]
+-.- c23["canales: \n 10-19-0"]
+
+```
+

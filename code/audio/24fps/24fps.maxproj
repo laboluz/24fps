@@ -2,8 +2,8 @@
 	"name" : "24fps",
 	"version" : 1,
 	"creationdate" : 3698731702,
-	"modificationdate" : 3703866337,
-	"viewrect" : [ 25.0, 81.0, 300.0, 500.0 ],
+	"modificationdate" : 3792416265,
+	"viewrect" : [ 10.0, 164.0, 300.0, 500.0 ],
 	"autoorganize" : 1,
 	"hideprojectwindow" : 0,
 	"showdependencies" : 1,
@@ -14,6 +14,15 @@
 				"kind" : "patcher",
 				"local" : 1,
 				"toplevel" : 1
+			}
+,
+			"poly-read_buffer.maxpat" : 			{
+				"kind" : "patcher"
+			}
+,
+			"granular_algo.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
 			}
 
 		}
